@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Workflow {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  active      Boolean      @default(false)
+  folder      String?
+  tags        String       @default("[]")
+  nodes       String       @default("[]")
+  edges       String       @default("[]")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  executions  Execution[]
+  deletedAt   DateTime?
+}
+
+model Execution {
+  id          String    @id @default(cuid())
+  workflowId  String
+  workflow    Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  status      String    @default("running") // running | success | error | canceled
+  mode        String    @default("test") // test | manual | trigger | retry
+  triggerType String?
+  error       String?
+  startedAt   DateTime  @default(now())
+  finishedAt  DateTime?
+  durationMs  Int?
+  aiTokens    Int       @default(0)
+  aiCost      Float     @default(0)
+  nodeRuns    NodeRun[]
+
+  @@index([workflowId, startedAt])
+  @@index([status])
+}
+
+model NodeRun {
+  id          String    @id @default(cuid())
+  executionId String
+  execution   Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  nodeId      String
+  nodeName    String
+  nodeType    String
+  status      String    @default("running")
+  startedAt   DateTime  @default(now())
+  durationMs  Int       @default(0)
+  inputJson   String?
+  outputJson  String?
+  error       String?
+  attempt     Int       @default(1)
+
+  @@index([executionId])
+}
+
+model Credential {
+  id          String    @id @default(cuid())
+  name        String
+  type        String
+  dataEnc     String
+  status      String    @default("unverified") // unverified | verified | error
+  lastTestedAt DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model Template {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  category    String
+  icon        String
+  gradient    String
+  nodes       String
+  edges       String
+  uses        Int      @default(0)
+  featured    Boolean  @default(false)
+}
+
+model Variable {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+}
+
+model AiUsage {
+  id          String   @id @default(cuid())
+  executionId String?
+  provider    String
+  model       String
+  tokensIn    Int      @default(0)
+  tokensOut   Int      @default(0)
+  cost        Float    @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  kind       String
+  message    String
+  workflowId String?
+  createdAt  DateTime @default(now())
+}
