@@ -30,7 +30,7 @@ export interface EvalContext {
 }
 
 const EXPR_PATTERN = /\{\{([^}]+)\}\}/g;
-const BLOCKED_PATTERN = /\b(require|process|globalThis|import|eval|Function|window|document)\b/;
+const BLOCKED_PATTERN = /\b(require|process|globalThis|global|import|eval|Function|constructor|__proto__|prototype|Reflect|Proxy|Bun|Deno|window|document)\b/;
 
 function evaluateRaw(expr: string, ctx: EvalContext): unknown {
   const fn = new Function(
