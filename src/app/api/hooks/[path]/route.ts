@@ -34,7 +34,8 @@ async function handle(request: Request, path: string) {
     }
 
     // Prefer an active workflow, otherwise the first match.
-    const chosen = matching.find((m) => m.workflow.active) ?? matching[0];
+    const chosen = matching.find((m) => m.workflow.active);
+    if (!chosen) return NextResponse.json({ error: "Webhook workflow is inactive" }, { status: 404 });
 
     const url = new URL(request.url);
     const query: Record<string, unknown> = {};
