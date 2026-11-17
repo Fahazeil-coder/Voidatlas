@@ -1,0 +1,15 @@
+services:
+  blissvoid:
+    build: .
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/app/db/custom.db
+      - BLISSVOID_MASTER_KEY=${BLISSVOID_MASTER_KEY:-blissvoid-self-hosted-change-me}
+    volumes:
+      - blissvoid_db:/app/db
+    restart: unless-stopped
+
+volumes:
+  blissvoid_db:
